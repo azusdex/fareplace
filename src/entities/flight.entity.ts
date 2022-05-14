@@ -1,4 +1,4 @@
-export class Flight {
+export class FlightEntity {
     constructor() {}
 
     flightNumber: string;
@@ -7,6 +7,6 @@ export class Flight {
     to: string;
     price: number;
     availableSeats: number;
-    departureDate: string;
+    departureTime: string;
     duration: number = 1;
 }

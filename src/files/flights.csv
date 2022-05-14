@@ -1,15 +1,4 @@
-[info] welcome to sbt 1.6.2 (AdoptOpenJDK Java 11.0.11)
-[info] loading settings for project global-plugins from build.sbt,idea.sbt ...
-[info] loading global plugins from /Users/idansofer/.sbt/1.0/plugins
-[info] loading settings for project backend-assignment-build-build from metals.sbt ...
-[info] loading project definition from /Users/idansofer/workspace/backend-assignment/project/project
-[info] loading settings for project backend-assignment-build from metals.sbt ...
-[info] loading project definition from /Users/idansofer/workspace/backend-assignment/project
-[success] Generated .bloop/backend-assignment-build.json
-[success] Total time: 1 s, completed 2 May 2022, 14:02:47
-[info] loading settings for project backend-assignment from build.sbt ...
-[info] set current project to backend-assignment (in build file:/Users/idansofer/workspace/backend-assignment/)
-[info] running GenerateFiles flights
+DepartureDate,FlightNumber,DepartureAirportCode,ArrivalAirportCode,DepartureTime,Duration
 2022-01-01,1010,TLV,MAD,08:31+02:00,330
 2022-01-01,1011,TLV,MAD,16:31+02:00,330
 2022-01-01,1020,TLV,BER,06:35+02:00,300
@@ -12250,4 +12239,3 @@
 2022-12-26,4121,JFK,BER,14:35-05:00,420
 2022-12-26,5010,JFK,LAX,03:43-05:00,180
 2022-12-26,5110,LAX,JFK,06:43-08:00,180
-[success] Total time: 0 s, completed 2 May 2022, 14:02:49

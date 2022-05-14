@@ -1,6 +1,6 @@
 import { Length, IsDateString, IsString } from 'class-validator';
 
-export class TripValidator {
+export class TripDto {
     @Length(3,3)
     @IsString()
     from: string;

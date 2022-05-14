@@ -5,7 +5,7 @@ import {ItineraryEntity} from './../entities/itinerary.entity';
 import {FlightEntity} from './../entities/flight.entity';
 
 @Injectable()
-export class FlyService {
+export class ItineraryService {
 
     readonly csvFlightsPath = './src/files/flights.csv';
     readonly csvPricesPath = './src/files/prices.csv';
@@ -19,7 +19,7 @@ export class FlyService {
         })['data'];
     }
 
-    initFlightEntity(flight: Array<String>): FlightEntity {
+    private initFlightEntity(flight: Array<String>): FlightEntity {
         let f: FlightEntity = new FlightEntity();
         f.flightNumber = flight['FlightNumber'];
         f.date = flight['DepartureDate'];
@@ -31,7 +31,7 @@ export class FlyService {
         return f;
     }
 
-    async getFlights(fromCode: string, toCode: string, date?: string): Promise<ItineraryEntity> {
+    private async getFlights(fromCode: string, toCode: string, date?: string): Promise<ItineraryEntity> {
         let relevantFlights: ItineraryEntity = new ItineraryEntity();
         const flights = await this.csvToJson(this.csvFlightsPath);
 
@@ -48,7 +48,7 @@ export class FlyService {
         return relevantFlights;
     }
 
-    async getFlightsBetweenDates(fromCode: string, toCode: string, minDate: number, maxDate: number) {
+    private async getFlightsBetweenDates(fromCode: string, toCode: string, minDate: number, maxDate: number) {
         let relevantFlights: ItineraryEntity = new ItineraryEntity();
         const flights = await this.csvToJson(this.csvFlightsPath);
 
@@ -65,7 +65,7 @@ export class FlyService {
         return relevantFlights;
     }
 
-    async getPrices(flights: ItineraryEntity): Promise<ItineraryEntity> {
+    private async getPrices(flights: ItineraryEntity): Promise<ItineraryEntity> {
         const prices = await this.csvToJson(this.csvPricesPath);
         let relevantFlights: ItineraryEntity = new ItineraryEntity();
         let totalPrice: number = 0;
@@ -85,7 +85,7 @@ export class FlyService {
         return relevantFlights;
     }
 
-    async getDepartureAirport(fromCode: string, date: string): Promise<ItineraryEntity> {
+    private async getDepartureAirport(fromCode: string, date: string): Promise<ItineraryEntity> {
         let relevant = new ItineraryEntity();
         let flights = await this.csvToJson(this.csvFlightsPath);
 
@@ -98,33 +98,7 @@ export class FlyService {
         return relevant;
     }
 
-    async findConnections(fromCode: string, toCode: string, date: string) {
-        let departureFlights: ItineraryEntity = await this.getDepartureAirport(fromCode, date);
-        let arrivalFlights: ItineraryEntity = await this.getArrivalAirport(toCode, date);
-
-        let direct: ItineraryEntity = this.findDirectFlight(fromCode, toCode, departureFlights);
-        direct = await this.getPrices(direct);
-
-        departureFlights = this.removeFlights(fromCode, toCode, departureFlights);
-        arrivalFlights = this.removeFlights(fromCode, toCode, arrivalFlights);
-
-        let oneConnection: ItineraryEntity = this.findOneConnection(fromCode, toCode, departureFlights, arrivalFlights);
-        for (const connection of oneConnection.flights) {
-            oneConnection = await this.getPrices(oneConnection);
-            departureFlights = this.removeFlights(connection.from, connection.to, departureFlights);
-            arrivalFlights = this.removeFlights(connection.from, connection.to, arrivalFlights);
-        }
-
-        let twoConnections: ItineraryEntity[] = await this.findTwoConnections(date, departureFlights, arrivalFlights);
-        let twoConnectionsWithPrices: ItineraryEntity[] = [];
-        for (const connection of twoConnections) {
-            twoConnectionsWithPrices.push(await this.getPrices(connection));
-        }
-
-        return [direct, oneConnection, twoConnectionsWithPrices];
-    }
-
-    removeFlights(fromCode: string, toCode: string, flights: ItineraryEntity) {
+    private removeFlights(fromCode: string, toCode: string, flights: ItineraryEntity) {
         let results: ItineraryEntity = new ItineraryEntity();
         for (const flight of flights.flights) {
             if (flight.from != fromCode || flight.to != toCode) {
@@ -135,7 +109,7 @@ export class FlyService {
         return results;
     }
 
-    findOneConnection(fromCode: string, toCode: string, departureFlights: ItineraryEntity, arrivalFlights: ItineraryEntity) {
+    private findOneConnection(fromCode: string, toCode: string, departureFlights: ItineraryEntity, arrivalFlights: ItineraryEntity) {
         let connection: ItineraryEntity = new ItineraryEntity();
         for (let f of departureFlights.flights) {
             for (let ff of arrivalFlights.flights) {
@@ -155,7 +129,7 @@ export class FlyService {
         return connection;
     }
 
-    async findTwoConnections(date: string, departureFlights: ItineraryEntity, arrivalFlights: ItineraryEntity) {
+    private async findTwoConnections(date: string, departureFlights: ItineraryEntity, arrivalFlights: ItineraryEntity) {
         let variations = [];
         let connection: ItineraryEntity = new ItineraryEntity();
         let results: ItineraryEntity[] = [];
@@ -205,7 +179,7 @@ export class FlyService {
         return results;
     }
 
-    findDirectFlight(fromCode: string, toCode: string, flights: ItineraryEntity) {
+    private findDirectFlight(fromCode: string, toCode: string, flights: ItineraryEntity) {
         let directs: ItineraryEntity = new ItineraryEntity();
         for (const flight of flights.flights) {
             if (flight.from == fromCode && flight.to == toCode) {
@@ -216,7 +190,7 @@ export class FlyService {
         return directs;
     }
 
-    async getArrivalAirport(toCode: string, date: string): Promise<ItineraryEntity> {
+    private async getArrivalAirport(toCode: string, date: string): Promise<ItineraryEntity> {
         let relevant = new ItineraryEntity();
         let flights = await this.csvToJson(this.csvFlightsPath);
 
@@ -236,14 +210,51 @@ export class FlyService {
         return result;
     }
 
-    async getRoundTrip(fromCode: string, toCode: string, date: string, returnDate: string): Promise<ItineraryEntity> {
+    async getRoundTrip(fromCode: string, toCode: string, date: string, returnDate: string): Promise<ItineraryEntity[]> {
         let flights = await this.getFlights(fromCode, toCode, date);
         let returnFlights = await this.getFlights(toCode, fromCode, returnDate);
-        let relevantFlights: ItineraryEntity = new ItineraryEntity();
-        relevantFlights.flights = flights.flights.concat(returnFlights.flights);
+        let relevantFlights: ItineraryEntity[] = [];
 
-        let result = await this.getPrices(relevantFlights);
+        for (const f of flights.flights) {
+            for (const r of returnFlights.flights) {
+                if (f.to == r.from) {
+                    let res: ItineraryEntity = new ItineraryEntity();
+                    res.flights.push(f);
+                    res.flights.push(r);
+                    relevantFlights.push(await this.getPrices(res));
+                }
+            }
+        }
 
-        return result;
+        return relevantFlights;
+    }
+
+    async findConnections(fromCode: string, toCode: string, date: string) {
+        let results: ItineraryEntity[] = [];
+        let departureFlights: ItineraryEntity = await this.getDepartureAirport(fromCode, date);
+        let arrivalFlights: ItineraryEntity = await this.getArrivalAirport(toCode, date);
+
+        let direct: ItineraryEntity = this.findDirectFlight(fromCode, toCode, departureFlights);
+        direct = await this.getPrices(direct);
+        results.push(direct);
+
+        departureFlights = this.removeFlights(fromCode, toCode, departureFlights);
+        arrivalFlights = this.removeFlights(fromCode, toCode, arrivalFlights);
+
+        let oneConnection: ItineraryEntity = this.findOneConnection(fromCode, toCode, departureFlights, arrivalFlights);
+        for (const connection of oneConnection.flights) {
+            oneConnection = await this.getPrices(oneConnection);
+            departureFlights = this.removeFlights(connection.from, connection.to, departureFlights);
+            arrivalFlights = this.removeFlights(connection.from, connection.to, arrivalFlights);
+        }
+        results.push(oneConnection);
+
+        let twoConnections: ItineraryEntity[] = await this.findTwoConnections(date, departureFlights, arrivalFlights);
+
+        for (const connection of twoConnections) {
+            results.push(await this.getPrices(connection));
+        }
+
+        return results;
     }
 }
